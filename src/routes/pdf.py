@@ -1,35 +1,35 @@
-from fastapi import APIRouter, File, UploadFile, Depends
+from fastapi import File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
-from pymongo.collection import Collection
-from src.utils.get_mongo import get_mongodb
-import PyPDF2
+from fastapi import APIRouter
+from io import BytesIO
+import pdfplumber
 
 router = APIRouter(prefix="/pdf", tags=["pdf"])
 
 
 @router.post("/upload/")
-async def upload_pdf(file: UploadFile = File(...), mongodb=Depends(get_mongodb)):
-    if file.content_type != "application/pdf":
-        return JSONResponse(content={"error": "Только PDF файлы"}, status_code=400)
-
+async def upload_pdf(file: UploadFile = File(...)):
     try:
-        pdf_reader = PyPDF2.PdfFileReader(file.file)
-        text = ""
+        # Read the content of the PDF file
+        pdf_content = BytesIO(await file.read())
+        pdf_content.seek(0)  # Reset the read pointer to the beginning
 
-        # Извлечение текста
-        for page_num in range(pdf_reader.numPages):
-            page = pdf_reader.getPage(page_num)
-            text += page.extractText()
+        # Extract text from the PDF
+        text = extract_text_from_pdf(pdf_content)
 
-        # Сохранение текста
-        pdf_data = {"filename": file.filename, "text": text}
-        mongodb_text = upload_pdf_text(mongodb, pdf_data)
+        # Return a dictionary with text and file name
+        response_dict = {"text": text, "name": file.filename}
+        return JSONResponse(content=response_dict, status_code=200)
 
-        return {"filename": file.filename, "text": text, "mongodb_id": str(mongodb_text.inserted_id)}
     except Exception as e:
-        return JSONResponse(content={"error": f"Ошибка обработки PDF: {str(e)}"}, status_code=500)
+        raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
 
 
-# Пока так, но тут вопрос как мы будем его сохранять
-def upload_pdf_text(mongodb: Collection, pdf_data: dict):
-    return mongodb.insert_one(pdf_data)
+def extract_text_from_pdf(pdf_content):
+    # Extract text from the PDF
+    text = ""
+    with pdfplumber.open(pdf_content) as pdf:
+        for page_num in range(len(pdf.pages)):
+            text += pdf.pages[page_num].extract_text()
+
+    return text
