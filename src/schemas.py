@@ -5,3 +5,9 @@ class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
 
     status: str = "OK"
+
+
+class UserModel(BaseModel):
+    username: str
+    password: str
+
