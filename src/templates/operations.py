@@ -5,16 +5,18 @@ from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from starlette import status
 
+from src.conf.config import settings
 
-load_dotenv()
 
+USERNAME = settings.username_mongo
+PASSWORD = settings.password_mongo
 
 def get_db():
     """
     Async connect to database.
     Returns database collection 'users'.
     """
-    client = AsyncIOMotorClient(os.environ.get('DATABASE'))
+    client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
     db = client['Users']
     collection = db['users']
     return collection
