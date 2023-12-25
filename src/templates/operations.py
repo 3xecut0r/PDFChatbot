@@ -39,6 +39,13 @@ async def create_user(name, password):
 
 
 def generate_response_from_model(message: str) -> str:
+    """
+    Generate a response using the GPT-3.5-turbo model based on the provided message/question.
+    Args:
+        message: The input message or question.
+    Returns:
+        str: The generated response from the GPT-3.5-turbo model.
+    """
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -51,6 +58,13 @@ def generate_response_from_model(message: str) -> str:
 
 
 async def create_chat(user_id):
+    """
+    Create a new chat in the database for a specific user.
+    Args:
+        user_id: The ID of the user for whom the chat is being created.
+    Returns:
+        str: The ID of the created chat.
+    """
     collection = get_db()
     try:
         chat = {'user_id': user_id}
@@ -61,6 +75,13 @@ async def create_chat(user_id):
 
 
 async def send_message(chat_id, question, answer):
+    """
+    Send a message in a specific chat, generating an answer using GPT-3.5-turbo model.
+    Args:
+        chat_id: The ID of the chat to which the message is being sent.
+        question: The question or input message.
+        answer: The generated answer for the given question.
+    """
     collection = get_db()
     try:
         answer = generate_response_from_model(question)
@@ -71,6 +92,13 @@ async def send_message(chat_id, question, answer):
     
 
 async def get_chat_history(chat_id):
+    """
+    Get the chat history for a specific chat ID.
+    Args:
+        chat_id: The ID of the chat for which the history is requested.
+    Returns:
+        list: A formatted list containing chat history with chat ID, questions, and answers.
+    """
     collection = get_db()
     try:
         chat_history = await collection['messages'].find({"chat_id": chat_id}).to_list(length=None)

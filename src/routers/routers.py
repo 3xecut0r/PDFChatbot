@@ -65,6 +65,13 @@ async def read_item(current_user: dict = Depends(get_current_user)):
 
 @chats.post("/create/{user_id}")
 async def create_chat_route(user_id: str):
+    """
+    Create a chat for a specific user and return the created chat's ID.
+    Args:
+        user_id: The ID of the user for whom the chat is being created.
+    Returns:
+        dict: A message indicating successful creation along with the chat ID.
+    """
     try:
         chat_id = await create_chat(user_id)
         return {"message": "Chat created successfully!", "chat_id": str(chat_id)}
@@ -74,6 +81,15 @@ async def create_chat_route(user_id: str):
 
 @chats.post("/{chat_id}/send_message")
 async def send_message_route(chat_id: str, question: str, answer: str):
+    """
+    Send a message in a specific chat with provided question and answer.
+    Args:
+        chat_id: The ID of the chat to which the message is being sent.
+        question: The question or input message.
+        answer: The provided answer for the given question.
+    Returns:
+        dict: A message indicating successful message sending.
+    """
     try:
         await send_message(chat_id, question, answer)
         return {"message": "Message sent successfully!"}
@@ -83,6 +99,13 @@ async def send_message_route(chat_id: str, question: str, answer: str):
 
 @chats.get("/history/{chat_id}")
 async def show_chat_history(chat_id: str):
+    """
+    Get the chat history for a specific chat ID.
+    Args:
+        chat_id: The ID of the chat for which the history is requested.
+    Returns:
+        dict: A dictionary containing chat history or a message if no history found.
+    """
     try:
         chat_history = await get_chat_history(chat_id)
         if not chat_history:
