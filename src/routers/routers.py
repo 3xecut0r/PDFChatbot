@@ -87,6 +87,7 @@ async def show_chat_history(chat_id: str):
         chat_history = await get_chat_history(chat_id)
         if not chat_history:
             return {"message": "No chat history found for this chat_id"}
-        return {"chat_history": chat_history}
+        else:
+            return {"chat_history": chat_history}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")

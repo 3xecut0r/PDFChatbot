@@ -63,6 +63,7 @@ async def create_chat(user_id):
 async def send_message(chat_id, question, answer):
     collection = get_db()
     try:
+        answer = generate_response_from_model(question)
         message = {'chat_id': chat_id, 'question': question, 'answer': answer}
         await collection['messages'].insert_one(message)
     except Exception as e:
