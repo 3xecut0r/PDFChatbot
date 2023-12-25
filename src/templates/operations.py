@@ -19,6 +19,18 @@ def get_db():
     collection = db['users']
     return collection
 
+def get_chat_data():
+    client = AsyncIOMotorClient(os.environ.get('DATABASE'))
+    db = client['Users']
+    collection_chat = db['chats']
+    return collection_chat
+
+def get_msg_data():
+    client = AsyncIOMotorClient(os.environ.get('DATABASE'))
+    db = client['Users']
+    collection_msg = db['messages']
+    return collection_msg
+
 
 async def create_user(name, password):
     """Function those create new user object in database 'Users'.
@@ -65,16 +77,16 @@ async def create_chat(user_id):
     Returns:
         str: The ID of the created chat.
     """
-    collection = get_db()
+    collection_chat = get_chat_data()
     try:
         chat = {'user_id': user_id}
-        result = await collection['chats'].insert_one(chat)
+        result = await collection_chat['chats'].insert_one(chat)
         return result.inserted_id
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-async def send_message(chat_id, question, answer):
+async def create_message(chat_id, question):
     """
     Send a message in a specific chat, generating an answer using GPT-3.5-turbo model.
     Args:
@@ -82,11 +94,12 @@ async def send_message(chat_id, question, answer):
         question: The question or input message.
         answer: The generated answer for the given question.
     """
-    collection = get_db()
+    collection_msg = get_msg_data()
     try:
         answer = generate_response_from_model(question)
         message = {'chat_id': chat_id, 'question': question, 'answer': answer}
-        await collection['messages'].insert_one(message)
+        await collection_msg['messages'].insert_one(message)
+        return answer
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
@@ -99,9 +112,9 @@ async def get_chat_history(chat_id):
     Returns:
         list: A formatted list containing chat history with chat ID, questions, and answers.
     """
-    collection = get_db()
+    collection_msg = get_msg_data()
     try:
-        chat_history = await collection['messages'].find({"chat_id": chat_id}).to_list(length=None)
+        chat_history = await collection_msg['messages'].find({"chat_id": chat_id}).to_list(length=None)
         formatted_history = []
         for message in chat_history:
             formatted_message = {

@@ -11,3 +11,10 @@ class UserModel(BaseModel):
     username: str
     password: str
 
+class ChatModel(BaseModel):
+    user_id: str
+
+class MessageModel(BaseModel):
+    chat_id: str
+    question: str
+    answer: str

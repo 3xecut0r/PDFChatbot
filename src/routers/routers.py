@@ -4,10 +4,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas import UserModel
 from src.templates.auth import Hash, create_access_token, get_current_user
 from src.templates.operations import create_user, get_db
-from src.templates.operations import create_chat, send_message, get_chat_history
+from src.templates.operations import create_chat, create_message, get_chat_history
 
 users = APIRouter(prefix='/users', tags=['users'])
-chats = APIRouter(prefix='/chat', tags=['chats'])
+chats = APIRouter(prefix='/chats', tags=['chats'])
 
 hash_handler = Hash()
 
@@ -63,8 +63,8 @@ async def read_item(current_user: dict = Depends(get_current_user)):
     return {"message": "Test route", "owner": current_user.get("username")}
 
 
-@chats.post("/create/{user_id}")
-async def create_chat_route(user_id: str):
+@chats.post("/")
+async def create_chat_route(current_user: dict = Depends(get_current_user)):
     """
     Create a chat for a specific user and return the created chat's ID.
     Args:
@@ -73,14 +73,14 @@ async def create_chat_route(user_id: str):
         dict: A message indicating successful creation along with the chat ID.
     """
     try:
-        chat_id = await create_chat(user_id)
+        chat_id = await create_chat(current_user['_id'])
         return {"message": "Chat created successfully!", "chat_id": str(chat_id)}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @chats.post("/{chat_id}/send_message")
-async def send_message_route(chat_id: str, question: str, answer: str):
+async def send_message_route(chat_id: str, question: str, current_user: dict = Depends(get_current_user)):
     """
     Send a message in a specific chat with provided question and answer.
     Args:
@@ -91,14 +91,14 @@ async def send_message_route(chat_id: str, question: str, answer: str):
         dict: A message indicating successful message sending.
     """
     try:
-        await send_message(chat_id, question, answer)
-        return {"message": "Message sent successfully!"}
+        answer = await create_message(chat_id, question)
+        return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
 
 @chats.get("/history/{chat_id}")
-async def show_chat_history(chat_id: str):
+async def show_chat_history(chat_id: str, current_user: dict = Depends(get_current_user)):
     """
     Get the chat history for a specific chat ID.
     Args:
