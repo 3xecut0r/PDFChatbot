@@ -4,8 +4,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from src.schemas import UserModel
 from src.templates.auth import Hash, create_access_token, get_current_user
 from src.templates.operations import create_user, get_db
+from src.templates.operations import create_chat, send_message, get_chat_history
 
 users = APIRouter(prefix='/users', tags=['users'])
+chats = APIRouter(prefix='/chat', tags=['chats'])
 
 hash_handler = Hash()
 
@@ -59,3 +61,32 @@ async def read_item(current_user: dict = Depends(get_current_user)):
     Returns: Test message.
     """
     return {"message": "Test route", "owner": current_user.get("username")}
+
+
+@chats.post("/create/{user_id}")
+async def create_chat_route(user_id: str):
+    try:
+        chat_id = await create_chat(user_id)
+        return {"message": "Chat created successfully!", "chat_id": str(chat_id)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@chats.post("/{chat_id}/send_message")
+async def send_message_route(chat_id: str, question: str, answer: str):
+    try:
+        await send_message(chat_id, question, answer)
+        return {"message": "Message sent successfully!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+
+@chats.get("/history/{chat_id}")
+async def show_chat_history(chat_id: str):
+    try:
+        chat_history = await get_chat_history(chat_id)
+        if not chat_history:
+            return {"message": "No chat history found for this chat_id"}
+        return {"chat_history": chat_history}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
