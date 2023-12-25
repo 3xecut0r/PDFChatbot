@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     password_mongo: str = Field(..., env="PASSWORD_MONGO") 
 
     class Config:
-        env_file = '.env.sample'   
+        env_file = '.env'
         env_file_encoding = 'utf-8' 
 
 
