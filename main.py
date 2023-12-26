@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI
 from src.templates.operations import get_db
 
 from src.routers.routers import users, chats

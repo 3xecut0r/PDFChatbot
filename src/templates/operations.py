@@ -1,5 +1,3 @@
-import os
-import openai
 from openai import OpenAI
 from fastapi import HTTPException
 from dotenv import load_dotenv
@@ -26,6 +24,10 @@ def get_db():
 
 
 def get_chat_data():
+    """
+    Async connect to database.
+    Returns database collection 'chats'.
+    """
     client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
     db = client['Users']
     collection_chat = db['chats']
@@ -33,13 +35,15 @@ def get_chat_data():
     
 
 def get_msg_data():
+    """
+    Async connect to database.
+    Returns database collection 'messages'.
+    """
     client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
     db = client['Users']
     collection_msg = db['messages']
     return collection_msg
     
-
-
 
 async def create_user(name, password):
     """Function those create new user object in database 'Users'.
@@ -109,7 +113,6 @@ async def create_message(chat_id, question):
     collection_msg = get_msg_data()
     try:
         answer = generate_response_from_model(question)
-        #answer = 'test'
         message = {'chat_id': chat_id, 'question': question, 'answer': answer}
         await collection_msg.insert_one(message)
         return answer
