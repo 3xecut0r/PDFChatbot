@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 class HealthCheck(BaseModel):
     """Response model to validate and return when performing a health check."""
-
     status: str = "OK"
 
 
@@ -15,6 +14,4 @@ class ChatModel(BaseModel):
     user_id: str
 
 class MessageModel(BaseModel):
-    chat_id: str
     question: str
-    answer: str

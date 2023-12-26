@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends,  HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src.schemas import UserModel
+from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
 from src.templates.operations import create_user, get_db
 from src.templates.operations import create_chat, create_message, get_chat_history
@@ -79,8 +79,8 @@ async def create_chat_route(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@chats.post("/{chat_id}/send_message")
-async def send_message_route(chat_id: str, question: str, current_user: dict = Depends(get_current_user)):
+@chats.post("/{chat_id}/send_question")
+async def send_question_route(chat_id: str, question: MessageModel, current_user: dict = Depends(get_current_user)):
     """
     Send a message in a specific chat with provided question and answer.
     Args:
@@ -91,13 +91,14 @@ async def send_message_route(chat_id: str, question: str, current_user: dict = D
         dict: A message indicating successful message sending.
     """
     try:
-        answer = await create_message(chat_id, question)
+        answer = await create_message(chat_id, question.question)
         return {"answer": answer}
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Internal Server Error")
     
 
-@chats.get("/history/{chat_id}")
+@chats.get("/{chat_id}/history")
 async def show_chat_history(chat_id: str, current_user: dict = Depends(get_current_user)):
     """
     Get the chat history for a specific chat ID.

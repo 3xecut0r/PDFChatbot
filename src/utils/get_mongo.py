@@ -9,4 +9,4 @@ PASSWORD = settings.password_mongo
 
 async def get_mongodb():
     client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
-    return client.storage
+    return client
