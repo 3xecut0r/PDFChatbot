@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 
-from src.templates.operations import get_db
-from src.routes import pdf
+from src.routers import pdf
 from src.routers.routers import users, chats
 
 app = FastAPI()

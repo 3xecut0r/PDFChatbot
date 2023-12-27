@@ -2,7 +2,6 @@ import os
 
 from openai import OpenAI
 from fastapi import HTTPException
-from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 from starlette import status
 
