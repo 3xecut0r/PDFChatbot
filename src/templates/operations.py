@@ -1,3 +1,5 @@
+import os
+
 from openai import OpenAI
 from fastapi import HTTPException
 from dotenv import load_dotenv
@@ -20,7 +22,7 @@ def get_db():
     collection = db['users']
     return collection
 
-
+  
 def get_chat_data():
     """
     Async connect to database.
