@@ -115,3 +115,4 @@ async def show_chat_history(chat_id: str, current_user: dict = Depends(get_curre
             return {"chat_history": chat_history}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+    
