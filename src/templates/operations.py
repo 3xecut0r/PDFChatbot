@@ -1,5 +1,4 @@
-import os
-
+from openai import OpenAI
 from fastapi import HTTPException
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -22,6 +21,28 @@ def get_db():
     return collection
 
 
+def get_chat_data():
+    """
+    Async connect to database.
+    Returns database collection 'chats'.
+    """
+    client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
+    db = client['Users']
+    collection_chat = db['chats']
+    return collection_chat
+    
+
+def get_msg_data():
+    """
+    Async connect to database.
+    Returns database collection 'messages'.
+    """
+    client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
+    db = client['Users']
+    collection_msg = db['messages']
+    return collection_msg
+    
+
 async def create_user(name, password):
     """Function those create new user object in database 'Users'.
         name: str
@@ -37,4 +58,85 @@ async def create_user(name, password):
             await collection.insert_one({'username': name, 'password': password})
     except Exception as e:
         print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+def generate_response_from_model(message: str) -> str:
+    """
+    Generate a response using the GPT-3.5-turbo model based on the provided message/question.
+    Args:
+        message: The input message or question.
+    Returns:
+        str: The generated response from the GPT-3.5-turbo model.
+    """
+    client = OpenAI(
+        api_key=settings.openai_api_key
+    )
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "user", "content": message},
+            {"role": "system", "content": ""},
+        ],
+    )
+    reply = response.choices[0].message.content
+    return reply
+
+
+async def create_chat(user_id):
+    """
+    Create a new chat in the database for a specific user.
+    Args:
+        user_id: The ID of the user for whom the chat is being created.
+    Returns:
+        str: The ID of the created chat.
+    """
+    collection_chat = get_chat_data()
+    try:
+        chat = {'user_id': user_id}
+        result = await collection_chat.insert_one(chat)
+        return result.inserted_id
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+async def create_message(chat_id, question):
+    """
+    Send a message in a specific chat, generating an answer using GPT-3.5-turbo model.
+    Args:
+        chat_id: The ID of the chat to which the message is being sent.
+        question: The question or input message.
+        answer: The generated answer for the given question.
+    """
+    collection_msg = get_msg_data()
+    try:
+        answer = generate_response_from_model(question)
+        message = {'chat_id': chat_id, 'question': question, 'answer': answer}
+        await collection_msg.insert_one(message)
+        return answer
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+
+async def get_chat_history(chat_id):
+    """
+    Get the chat history for a specific chat ID.
+    Args:
+        chat_id: The ID of the chat for which the history is requested.
+    Returns:
+        list: A formatted list containing chat history with chat ID, questions, and answers.
+    """
+    collection_msg = get_msg_data()
+    try:
+        chat_history = await collection_msg.find({"chat_id": chat_id}).to_list(length=None)
+        formatted_history = []
+        for message in chat_history:
+            formatted_message = {
+                "question": message.get("question"),
+                "answer": message.get("answer")
+            }
+            formatted_history.append(formatted_message)
+        return formatted_history
+    except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
