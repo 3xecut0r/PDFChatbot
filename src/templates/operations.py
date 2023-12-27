@@ -6,11 +6,9 @@ from starlette import status
 
 from src.conf.config import settings
 
+
 USERNAME = settings.username_mongo
 PASSWORD = settings.password_mongo
-
-load_dotenv()
-
 
 def get_db():
     """
