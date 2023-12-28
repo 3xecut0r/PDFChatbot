@@ -13,6 +13,7 @@ router = APIRouter(prefix="/files", tags=["files"])
 
 
 @router.post("/upload-pdf/")
+
 async def upload_pdf(file: UploadFile = File(...)):
     try:
         pdf_content = BytesIO(await file.read())
@@ -25,11 +26,13 @@ async def upload_pdf(file: UploadFile = File(...)):
         collection = mongo_client["files"]
         result = await collection.insert_one({"text": text, "name": file.filename})
 
+
         response_dict = {
             "text": text,
             "name": file.filename,
             "id": str(result.inserted_id),
         }
+  
         return JSONResponse(content=response_dict, status_code=200)
 
     except Exception as e:
@@ -42,6 +45,7 @@ def extract_text_from_pdf(pdf_content):
         for page_num in range(len(pdf.pages)):
             text += pdf.pages[page_num].extract_text()
     return text
+
 
 
 @router.post("/upload-csv/")
@@ -157,3 +161,4 @@ async def upload_txt(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing TXT: {str(e)}")
+
