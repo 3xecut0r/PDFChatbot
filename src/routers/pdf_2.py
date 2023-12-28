@@ -59,6 +59,7 @@ async def upload_file(file: UploadFile = File(...)):
         return JSONResponse(
             content={
                 "id": str(result.inserted_id),  # Return only the ID
+                "name": file.filename,
             },
             status_code=200,
         )
