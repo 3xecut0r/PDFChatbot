@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.routers import pdf
+from src.routers.pdf_2 import router as pdf2_router
 from src.routers.routers import users, chats
 
 app = FastAPI()
@@ -11,4 +11,4 @@ origins = [
 
 app.include_router(users)
 app.include_router(chats)
-app.include_router(pdf.router, prefix="/pdf")
+app.include_router(pdf2_router, prefix="/pdf")
