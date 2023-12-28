@@ -46,11 +46,19 @@ async def upload_file(file: UploadFile = File(...)):
         collection = mongo_client["files"]
         result = await collection.insert_one({"text": text, "name": file.filename})
 
+        # return JSONResponse(
+        #     content={
+        #         "text": text,
+        #         "name": file.filename,
+        #         "id": str(result.inserted_id),
+        #     },
+        #     status_code=200,
+        # )
+
+        # Return the ID of the inserted document
         return JSONResponse(
             content={
-                "text": text,
-                "name": file.filename,
-                "id": str(result.inserted_id),
+                "id": str(result.inserted_id),  # Return only the ID
             },
             status_code=200,
         )
