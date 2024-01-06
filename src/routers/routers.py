@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Depends,  HTTPException, status
+from fastapi import APIRouter, Depends,  HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import RedirectResponse as redirect
 
 from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
-from src.templates.operations import create_user, get_db
+from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment
 from src.templates.operations import create_chat, create_message, get_chat_history
 from src.templates.operations import size_warning_response, extract_text_from_pdf, extract_data_from_csv, extract_text_from_docx
 
@@ -23,6 +24,9 @@ chats = APIRouter(prefix='/chats', tags=['chats'])
 
 # router = APIRouter(prefix="/pdf", tags=["pdf"])
 router = APIRouter(prefix="/files", tags=["files"])
+
+
+payment = APIRouter(prefix='/payment', tags=['payment'])
 
 hash_handler = Hash()
 
@@ -184,3 +188,27 @@ async def upload_file(file: UploadFile = File(...)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
+
+@users.post('/pay')
+async def pay(current_user: dict = Depends(get_current_user)):
+    result = await get_payment()
+    return result
+
+
+@payment.get("/execute")
+async def execute_payment(request: Request, current_user: dict = Depends(get_current_user)):
+    payment_id = request.query_params.get("paymentId")
+    payer_id = request.query_params.get("PayerID")
+
+    if payment_id and payer_id:
+        success = await execute_paypal_payment(payment_id, payer_id, current_user.get('username'))
+
+        if success:
+            return {"status": "Payment successful, user upgraded to premium"}
+        else:
+            return {"status": "Payment failed"}
+    else:
+        return {"status": "Missing paymentId or PayerID"}
+
+    
+
