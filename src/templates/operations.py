@@ -1,5 +1,6 @@
-import os
 
+import requests
+from requests.auth import HTTPBasicAuth
 from openai import OpenAI
 from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,6 +11,10 @@ from src.conf.config import settings
 
 USERNAME = settings.username_mongo
 PASSWORD = settings.password_mongo
+CLIENT = settings.paypal_client
+SECRET = settings.paypal_secret
+
+
 
 def get_db():
     """
@@ -56,7 +61,7 @@ async def create_user(name, password):
         if existing_user:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User exist")
         else:
-            await collection.insert_one({'username': name, 'password': password})
+            await collection.insert_one({'username': name, 'password': password, 'premium': False})
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -141,3 +146,47 @@ async def get_chat_history(chat_id):
         return formatted_history
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+async def get_payment():
+    auth = HTTPBasicAuth(CLIENT, SECRET)
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        'intent': 'sale',
+        'payer': {'payment_method': 'paypal'},
+        'transactions': [{
+            'amount': {
+                'total': '1.00',
+                'currency': 'USD'
+            }
+        }],
+        'redirect_urls': {
+            'return_url': 'http://localhost:8000/payment/execute',
+            'cancel_url': 'http://localhost:8000/payment/cancel'
+        }
+    }
+
+    response = requests.post('https://api.sandbox.paypal.com/v1/payments/payment',
+                             json=payload, auth=auth, headers=headers)
+    if response.status_code == 201:
+        pay = response.json().get('links')[1].get('href')
+        return pay
+    else:
+        return response.status_code
+
+async def execute_paypal_payment(payment_id, payer_id, user):
+    execute_url = f"https://api.sandbox.paypal.com/v1/payments/payment/{payment_id}/execute"
+    data = {
+        "payer_id": payer_id
+    }
+    auth = HTTPBasicAuth(CLIENT, SECRET)
+    headers = {"Content-Type": "application/json"}
+
+    response = requests.post(execute_url, json=data, auth=auth, headers=headers)
+    if response.status_code == 200:
+        collection = get_db()
+        collection.update_one({'username': user}, {'$set': {'premium': True}})
+        return True
+    else:
+        print("Payment execution failed:", response.text)
+        return False
