@@ -5,9 +5,24 @@ from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
 from src.templates.operations import create_user, get_db
 from src.templates.operations import create_chat, create_message, get_chat_history
+from src.templates.operations import size_warning_response, extract_text_from_pdf, extract_data_from_csv, extract_text_from_docx
 
+from starlette.responses import FileResponse
+
+from fastapi import File, UploadFile, HTTPException, APIRouter
+from fastapi.responses import JSONResponse
+
+from io import BytesIO, StringIO
+from docx import Document
+
+from src.utils.get_mongo import get_mongodb
+
+main = APIRouter(prefix='/main', tags=['main'])
 users = APIRouter(prefix='/users', tags=['users'])
 chats = APIRouter(prefix='/chats', tags=['chats'])
+
+# router = APIRouter(prefix="/pdf", tags=["pdf"])
+router = APIRouter(prefix="/files", tags=["files"])
 
 hash_handler = Hash()
 
@@ -115,4 +130,57 @@ async def show_chat_history(chat_id: str, current_user: dict = Depends(get_curre
             return {"chat_history": chat_history}
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
+
+@main.get("/", include_in_schema=False)
+def get_data():
+    return FileResponse("static/main.html") 
+
+@chats.get("/", include_in_schema=False)
+def get_data():
+    return FileResponse("static/chat.html") 
+
+
+@router.post("/upload/")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        file_content = await file.read()
+
+        if file.content_type == "application/pdf":
+            text = extract_text_from_pdf(BytesIO(file_content))
+
+        elif file.content_type == "text/csv":
+            if len(file_content.decode("utf-8")) > 4000:
+                return size_warning_response()
+            data = extract_data_from_csv(StringIO(file_content.decode("utf-8")))
+            text = str(data)
+
+        elif (
+            file.content_type
+            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ):
+            text = extract_text_from_docx(BytesIO(file_content))
+            if len(text) > 4000:
+                return size_warning_response()
+
+        elif file.content_type == "text/plain":
+            text = file_content.decode("utf-8")
+            if len(text) > 4000:
+                return size_warning_response()
+
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file type")
+
+        mongo_client = await get_mongodb()
+        collection = mongo_client["files"]
+        result = await collection.insert_one({"text": text, "name": file.filename})
+
+        return JSONResponse(
+            content={
+                "id": str(result.inserted_id),  # Return only the ID
+                "name": file.filename,
+            },
+            status_code=200,
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
