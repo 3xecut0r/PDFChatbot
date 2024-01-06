@@ -1,0 +1,38 @@
+.btn-light, button {
+    border: 1px solid var(--blue);
+	border-radius: 20px;
+    color: var(--blue);
+    margin: 8px;
+    padding: 12px 45px;
+	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	transition: transform 80ms ease-in;
+}
+
+.btn-light:hover {
+    border: 1px solid var(--blue);
+    color: var(--white);
+    background-color: var(--blue);
+}
+
+.send-btn {
+  height: 56px;
+  width: 56px;  
+  margin: 24px 8px 24px 8px;
+}
+
+button:active, .btn-light:active {
+	transform: scale(0.95);
+}
+
+button:focus, .btn-light:focus {
+	outline: none;
+}
+
+button.ghost {
+	background-color: transparent;
+	border-color: var(--white);
+	color: var(--white);
+}

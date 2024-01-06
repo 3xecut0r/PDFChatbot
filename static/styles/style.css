@@ -1,0 +1,136 @@
+@import url(colors.css);
+@import url(fonts.css);
+@import url(forms.css);
+@import url(buttons.css);
+@import url(custom-form.css);
+
+
+html, body {
+  display: flex;
+  font-size: 16px;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(217deg, rgba(235, 147, 95,.8), rgba(235, 147, 95, 0) 70.71%),
+              linear-gradient(127deg, rgba(219, 119, 208,.8), rgba(219, 119, 208,0) 70.71%),
+              linear-gradient(336deg, rgba(136, 227, 252,.8), rgba(136, 227, 252,0) 70.71%);
+}
+  
+.container, .container-fluid {
+  height: 90%;
+  width: 100%;
+  padding-top: 36px;
+  margin: auto;
+  font-family: 'Montserrat', sans-serif;
+  background-color: rgb(255, 255, 255, 0.7);
+	border-radius: 10px;
+  	box-shadow: 0 5px 10px rgba(0,0,0,0.25), 
+			0 5px 10px rgba(0,0,0,0.22);
+	position: relative;
+	overflow: hidden;
+}
+
+
+.col-md-8, .col-md-4, .col-md-6, .col, .col-md-2, col-md-10, .form-block {
+  padding: auto;
+  height: 100%;
+}
+
+
+.new-chat {
+  width: 100%;
+  height: 56px;
+}
+
+.messageDisplay {
+  height: 900px;
+  width: 90%;
+  margin: 24px auto;
+  padding: 16px;
+  background-color: #fff;
+  overflow-y: auto;
+}
+
+.main-block {
+  margin-top: 5%;
+  padding: 24px;
+  background-color: rgb(255, 255, 255, 0.7);
+  border: 1px solid #fff;
+  border-radius: 36px;
+}
+
+.img-block {
+  background-color: #fff;
+}
+
+.img-main {
+  background-color: #fff;
+  height: 600px;
+}
+
+.form-label {
+  padding-bottom: 8px;
+  margin: 0;
+}
+
+.nav-panel, .chat-panel {
+  height: 100%;
+}
+
+.nav-panel {
+  width: 25%;
+  height: 100%;
+  background-color: #f4f4f4;
+}
+
+.chat-panel {
+  background-color: rgb(255, 255, 255, 0.7);
+  width: 75%;
+}
+
+.ai-switcher {
+  height: 56px;
+  width: 100%;
+  margin: 24px auto auto 24px;
+}
+
+.messages {
+  height: 80%;
+  width: 100%;
+  min-height: 70%;
+}
+
+.my-chats {
+  width: 100%;
+}
+
+.form-select {
+  width: 20%;
+  margin: 0;
+  padding: 16px 8px;
+  cursor: pointer;
+}
+
+.chat-link {
+  height: 56px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+.chat-link:hover {
+  border: 1px solid rgba(235, 147, 95,.8);
+}
+
+.my-chats-list {
+  width: 100%;
+  height: 100%;
+  padding: 24px 16px;
+  margin: auto;
+}
+
+.chat-msg {
+  margin: auto;
+  align-items: center;
+}

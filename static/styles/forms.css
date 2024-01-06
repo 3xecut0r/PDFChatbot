@@ -1,0 +1,77 @@
+.form-block {
+    padding: 20px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--main-bg-color);
+    border-radius: var(--bs-border-radius)!important;
+    box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
+    width: 355px;
+    border: 0.5px rgba(219, 119, 208,.8) solid;
+  }
+  
+  .form-container {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    transition: all 0.6s ease-in-out;
+  }
+
+  .form-control {
+    width: 80%; 
+    height: 40px;
+  }
+  
+  label {
+    padding: 0px 0px 16px 0px;
+  }
+
+  .form-label select {
+    border: 1px solid var(--form-border);
+    height: 40px;
+    border-radius: 4px;
+    margin-right: 6px;
+    margin-top: 6px;
+    min-width: 90px;
+    cursor: pointer;
+  }
+
+  .form-label select:focus-visible {
+    border: none;
+  }
+
+  .form-label input {
+    border: 1px solid var(--form-border);
+    height: 40px;
+    border-radius: 4px;
+    margin-right: 6px;
+    margin-top: 6px;
+    min-width: 80px;
+  }
+
+
+  .msg-field {
+    width: 70%;
+    height: 56px;
+    margin: 24px 8px 24px 24px;
+  }
+
+  form {
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 0 50px;
+    height: 100%;
+    text-align: center;
+  }
+  
+  input {
+    background-color: #eee;
+    border: none;
+    padding: 12px 15px;
+    margin: 8px 0;
+    width: 100%;
+  }
