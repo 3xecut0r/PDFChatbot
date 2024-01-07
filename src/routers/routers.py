@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends,  HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import RedirectResponse as redirect
 
 from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
@@ -191,24 +190,38 @@ async def upload_file(file: UploadFile = File(...)):
 
 @users.post('/pay')
 async def pay(current_user: dict = Depends(get_current_user)):
-    result = await get_payment()
+    """
+    PayPal redirect function
+    Args:
+        current_user: depends on user token
+    Returns: redirect link or status code 400
+    """
+    result = await get_payment(current_user.get('username'))
     return result
 
 
 @payment.get("/execute")
-async def execute_payment(request: Request, current_user: dict = Depends(get_current_user)):
+async def execute_payment(request: Request):
+    """
+    Get message from PayPal. Checking if user pay was accepted.
+    Args:
+        request: Request object.
+    Returns: query set with user status.
+    """
     payment_id = request.query_params.get("paymentId")
     payer_id = request.query_params.get("PayerID")
-
+    token = request.query_params.get('token')
+    session = get_db()
+    current_user = await session.find_one({'token': token})
+    print(f' its = {current_user}')
     if payment_id and payer_id:
         success = await execute_paypal_payment(payment_id, payer_id, current_user.get('username'))
-
         if success:
             return {"status": "Payment successful, user upgraded to premium"}
         else:
-            return {"status": "Payment failed"}
+            return {"status": "Payment failed. Try again."}
     else:
-        return {"status": "Missing paymentId or PayerID"}
+        return {"status": "Missing paymentId or PayerID. Try again or send a feedback."}
 
     
 
