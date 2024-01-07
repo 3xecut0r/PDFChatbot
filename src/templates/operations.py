@@ -7,6 +7,15 @@ from starlette import status
 
 from src.conf.config import settings
 
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
+from docx import Document
+import pdfplumber
+import csv
+
+from src.utils.get_mongo import get_mongodb
+
 
 USERNAME = settings.username_mongo
 PASSWORD = settings.password_mongo
@@ -146,6 +155,35 @@ async def get_chat_history(chat_id):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+
+def size_warning_response():
+    return JSONResponse(
+        content={
+            "warning": "File size exceeds 4000 symbols. Please reduce the file size or abort the operation.",
+            "action_required": True,
+        },
+        status_code=200,
+    )
+
+
+def extract_text_from_pdf(pdf_content):
+    text = ""
+    with pdfplumber.open(pdf_content) as pdf:
+        for page_num in range(len(pdf.pages)):
+            text += pdf.pages[page_num].extract_text()
+    return text
+
+
+def extract_data_from_csv(csv_content):
+    reader = csv.DictReader(csv_content)
+    data = [row for row in reader]
+    return data
+
+
+def extract_text_from_docx(doc_content):
+    doc = Document(doc_content)
+    return "\n".join([paragraph.text for paragraph in doc.paragraphs])
 
 async def get_payment(user):
     """
