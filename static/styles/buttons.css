@@ -18,9 +18,17 @@
 }
 
 .send-btn {
-  height: 56px;
-  width: 56px;  
+  height: 40px;
+  width: 60px;  
   margin: 24px 8px 24px 8px;
+  padding: 8px 12px;
+  background-color: rgb(255, 255, 255, 0.3);
+  color: var(--blue);
+}
+
+.send-btn:hover {
+	background-color: var(--white);
+	transform: scale(0.95);
 }
 
 button:active, .btn-light:active {

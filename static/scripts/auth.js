@@ -2,18 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const signUpButton = document.querySelector('.sign-up');
     const signInButton = document.querySelector('.log-in');
 
-    function validateFields(emailField, passwordField, button) {
-        if (emailField.value.trim() === '' || passwordField.value.trim() === '') {
-            emailField.style.borderColor = 'red';
-            passwordField.style.borderColor = 'red';
-            button.disabled = true;
-        } else {
-            emailField.style.borderColor = 'green';
-            passwordField.style.borderColor = 'green';
-            button.disabled = false;
-        }
-    }
     
+    
+
     signUpButton.addEventListener('click', async () => {
         const email = document.getElementById('exampleInputEmail1').value;
         const password = document.getElementById('exampleInputPassword1').value;
@@ -71,4 +62,5 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Internal error occurred. Please try again later.');
         }
     });
+
 });

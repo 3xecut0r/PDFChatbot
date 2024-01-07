@@ -18,12 +18,11 @@ html, body {
 }
   
 .container, .container-fluid {
-  height: 90%;
+  height: 80%;
   width: 100%;
-  padding-top: 36px;
   margin: auto;
   font-family: 'Montserrat', sans-serif;
-  background-color: rgb(255, 255, 255, 0.7);
+  background-color: rgb(255, 255, 255, 0.5);
 	border-radius: 10px;
   	box-shadow: 0 5px 10px rgba(0,0,0,0.25), 
 			0 5px 10px rgba(0,0,0,0.22);
@@ -31,62 +30,53 @@ html, body {
 	overflow: hidden;
 }
 
-
-.col-md-8, .col-md-4, .col-md-6, .col, .col-md-2, col-md-10, .form-block {
-  padding: auto;
+.col-md-8, .col-md-4, .col-md-6, .col, .col-md-3, .col-md-9, .form-block {
   height: 100%;
-}
-
-
-.new-chat {
-  width: 100%;
-  height: 56px;
-}
-
-.messageDisplay {
-  height: 900px;
-  width: 90%;
-  margin: 24px auto;
-  padding: 16px;
-  background-color: #fff;
-  overflow-y: auto;
-}
-
-.main-block {
-  margin-top: 5%;
-  padding: 24px;
-  background-color: rgb(255, 255, 255, 0.7);
-  border: 1px solid #fff;
-  border-radius: 36px;
-}
-
-.img-block {
-  background-color: #fff;
-}
-
-.img-main {
-  background-color: #fff;
-  height: 600px;
-}
-
-.form-label {
-  padding-bottom: 8px;
   margin: 0;
+  position: relative;
 }
 
 .nav-panel, .chat-panel {
   height: 100%;
 }
 
-.nav-panel {
-  width: 25%;
-  height: 100%;
-  background-color: #f4f4f4;
-}
-
 .chat-panel {
   background-color: rgb(255, 255, 255, 0.7);
-  width: 75%;
+  margin-left: 25%;
+  height: 100%;
+  position: absolute;
+}
+
+
+.my-chats-list {
+  width: 100%;
+  height: 100%;
+  padding: 8px 8px;
+  margin: 0px auto 16px auto;
+  overflow-y: auto;
+}
+
+
+.my-chats {
+  width: 100%;
+}
+
+.chat-link {
+  cursor: pointer;
+  padding: 8px;
+  margin: 0;
+  border-bottom: 1px solid #f2f2f2;
+}
+
+.chat-link:hover {
+  background-color: rgba(0,0,0,0.1);
+}
+
+.form-select {
+  width: 20%;
+  margin: 0;
+  padding: 16px;
+  cursor: pointer;
 }
 
 .ai-switcher {
@@ -96,41 +86,25 @@ html, body {
 }
 
 .messages {
-  height: 80%;
-  width: 100%;
-  min-height: 70%;
+  height: 70%;
+  width: 90%;
+  margin: 24px auto;
+  overflow-y: auto;
 }
 
-.my-chats {
-  width: 100%;
-}
-
-.form-select {
-  width: 20%;
+.messageDisplay {
+  padding: 16px;
   margin: 0;
-  padding: 16px 8px;
-  cursor: pointer;
-}
-
-.chat-link {
-  height: 56px;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-}
-
-.chat-link:hover {
-  border: 1px solid rgba(235, 147, 95,.8);
-}
-
-.my-chats-list {
-  width: 100%;
-  height: 100%;
-  padding: 24px 16px;
-  margin: auto;
+  min-height: 40px;
+  height: auto;
+  background-color: #fff;
 }
 
 .chat-msg {
-  margin: auto;
+  margin-bottom: 0;
   align-items: center;
+}
+
+.option-link {
+  height: 40px;
 }

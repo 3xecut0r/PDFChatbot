@@ -4,7 +4,47 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendMsgButton = document.getElementById('send-msg');
     const chatHistoryButton = document.getElementById('chat-history');
     const chatDisplay = document.getElementById('messageDisplay');
+    const chatIdDisplay = document.getElementById('chatIdDisplay');
+    const checkchat = document.getElementById('checkchatIdDisplay');
+    const inputField = document.getElementById('exampleFormControlTextarea1');
 
+    async function sendMessage() {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const chatId = 'your_chat_id';
+            const message = inputField.value;
+            chatDisplay.innerHTML += `<div><b>Me:</b> ${message}</div>`;
+            inputField.value = '';
+            const response = await fetch(`${BASE_URL}/chats/${chatId}/send_question`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question: message })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                const answer = data.answer;
+                chatDisplay.innerHTML += `<div><b>Chat:</b> ${answer}</div>`;
+            } else {
+                document.getElementById('messageDisplay').innerText = 'Failed to send message';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            chatDisplay.innerHTML += 'Internal error occurred. Please try again later.';
+        }
+    }
+
+    inputField.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    
     createChatButton.addEventListener('click', async () => {
         try {
             const token = localStorage.getItem('accessToken');
@@ -19,7 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (response.ok) {
                 const chatId = data.chat_id;
-                document.getElementById('chatIdDisplay').innerText = `Chat # ${chatId}`;
+                checkchat.innerHTML = ``;
+                chatIdDisplay.innerHTML += `<div class="chat-link">Chat #${chatId}</div>`;
             } else {
                 document.getElementById('chatIdDisplay').innerText = 'Failed to create chat';
             }
@@ -32,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendMsgButton.addEventListener('click', async () => {
         try {
             const token = localStorage.getItem('accessToken');
-            const chatId = 'your_chat_id'; // Отримайте chatId з localStorage або іншого джерела
+            const chatId = 'your_chat_id';
             const message = document.getElementById('exampleFormControlTextarea1').value;
             chatDisplay.innerHTML += `<div><b>Me:</b> ${message}</div>`;
             document.getElementById('exampleFormControlTextarea1').value = '';
@@ -63,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chatHistoryButton.addEventListener('click', async () => {
         try {
             const token = localStorage.getItem('accessToken');
-            const chatId = 'your_chat_id'; // Отримайте chatId з localStorage або іншого джерела
+            const chatId = 'your_chat_id';
 
             const response = await fetch(`${BASE_URL}/chats/${chatId}/history`, {
                 method: 'GET',
