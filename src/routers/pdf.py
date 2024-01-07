@@ -3,13 +3,15 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 from io import BytesIO
 import pdfplumber
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 from src.utils.get_mongo import get_mongodb
 
 router = APIRouter(prefix="/pdf", tags=["pdf"])
+embeddings = HuggingFaceEmbeddings()
 
-
-@router.post("/upload/")
-async def upload_pdf(file: UploadFile = File(...)):
+# @router.post("/upload/")
+async def upload_pdf(file) -> dict[str, any]:
     try:
         pdf_content = BytesIO(await file.read())
         pdf_content.seek(0)
@@ -19,13 +21,14 @@ async def upload_pdf(file: UploadFile = File(...)):
         mongo_client = await get_mongodb()
 
         collection = mongo_client["files"]
-        result = await collection.insert_one({"text": text, "name": file.filename})
+        embedding_result = embeddings.embed_query(text)
+        result = await collection.insert_one({"text": text, "name": file.filename, "embedding": embedding_result})
 
         response_dict = {"text": text, "name": file.filename, "id": str(result.inserted_id)}
-        return JSONResponse(content=response_dict, status_code=200)
+        return response_dict
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing PDF: {str(e)}")
+        print(f"Error processing PDF: {str(e)}")
 
 
 def extract_text_from_pdf(pdf_content):
