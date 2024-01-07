@@ -1,4 +1,3 @@
-
 import requests
 from requests.auth import HTTPBasicAuth
 from openai import OpenAI
@@ -148,7 +147,18 @@ async def get_chat_history(chat_id):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-async def get_payment():
+async def get_payment(user):
+    """
+    Request method. We send our PayPal credentials to PayPal service.
+    If request status code = 201, we get json objects with links for redirect our client
+    on a payment page.
+    Else response return bad request status code.
+    Args:
+        user: username --> str, for MongoDB collection["Users"].find_one({'username': user})
+
+    Returns: redirect link --> str. or status code (400. bad request)
+    """
+    collection = get_db()
     auth = HTTPBasicAuth(CLIENT, SECRET)
     headers = {'Content-Type': 'application/json'}
     payload = {
@@ -170,11 +180,23 @@ async def get_payment():
                              json=payload, auth=auth, headers=headers)
     if response.status_code == 201:
         pay = response.json().get('links')[1].get('href')
+        token = pay.split('token=')[-1]
+        collection.update_one({'username': user}, {'$set': {'token': token}})
         return pay
     else:
-        return response.status_code
+        return HTTPException(status_code=400, detail="Bad request")
+
 
 async def execute_paypal_payment(payment_id, payer_id, user):
+    """
+    Checking response if pay was accepted.
+    Args:
+        payment_id: str
+        payer_id: srt
+        user: username --> str, for MongoDB collection["Users"].find_one({'username': user})
+
+    Returns: True if all good. False if pay was not accepted.
+    """
     execute_url = f"https://api.sandbox.paypal.com/v1/payments/payment/{payment_id}/execute"
     data = {
         "payer_id": payer_id
