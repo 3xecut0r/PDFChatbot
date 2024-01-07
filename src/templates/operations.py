@@ -55,7 +55,7 @@ def get_msg_data():
     db = client['Users']
     collection_msg = db['messages']
     return collection_msg
-    
+
 
 async def create_user(name, password):
     """Function those create new user object in database 'Users'.
