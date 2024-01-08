@@ -234,6 +234,24 @@ async def upload_file(file: UploadFile = File(...)):
 
 @users.post("/pay")
 async def pay(current_user: dict = Depends(get_current_user)):
+    """
+    Initiates a payment process for the current user.
+
+    Args:
+        current_user (dict): The current authenticated user obtained from the dependency `get_current_user`.
+
+    Returns:
+        dict: The result of the payment initiation process. The structure of this response depends on
+              the implementation of `get_payment()`.
+
+    Raises:
+        HTTPException: If any errors occur during the payment initiation process.
+
+    Note:
+        This function assumes that `get_payment()` handles the actual logic of initiating a payment and
+        may interact with external payment services. The current user's details are used to personalize
+        or authorize the payment process.
+    """
     result = await get_payment()
     return result
 
@@ -242,6 +260,25 @@ async def pay(current_user: dict = Depends(get_current_user)):
 async def execute_payment(
     request: Request, current_user: dict = Depends(get_current_user)
 ):
+    """
+    Executes a payment transaction based on the provided payment ID and payer ID.
+    Args:
+        request (Request): The request object, used to extract query parameters.
+        current_user (dict): The current authenticated user, used to validate and associate the payment.
+
+    Returns:
+        dict: A status message indicating the result of the payment execution. This includes successful
+              completion or failure details.
+
+    Raises:
+        HTTPException: If the payment ID or payer ID is missing, or if the payment execution fails.
+
+    Note:
+        The actual payment execution is handled by `execute_paypal_payment()`, which should manage the
+        interaction with the PayPal API or similar payment service. The function checks for the presence
+        of 'paymentId' and 'PayerID' in the query parameters and uses them along with the current user's
+        information to execute the payment.
+    """
     payment_id = request.query_params.get("paymentId")
     payer_id = request.query_params.get("PayerID")
 
