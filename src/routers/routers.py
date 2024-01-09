@@ -166,7 +166,7 @@ def get_data():
     return FileResponse("static/chat.html")
 
 
-@router.post("/upload/")
+@router.post("/{chat_id}/upload/")
 async def upload_file(chat_id, file: UploadFile = File(...)):
     """
     Uploads a file and processes it based on its content type.
