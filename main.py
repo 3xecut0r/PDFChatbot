@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 import os
 
-from src.phi_2.router import router as model_route
 from src.routers.routers import users, chats, payment
 from src.base_model.routers import base
 
@@ -12,7 +11,7 @@ from starlette.staticfiles import StaticFiles
 app = FastAPI()
 
 origins = [
-    "http://localhost:8000"
+    "http://localhost:3000"
     ]
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -23,6 +22,5 @@ app.include_router(main)
 app.include_router(users)
 app.include_router(chats)
 app.include_router(payment)
-app.include_router(model_route)
 app.include_router(pdf_router, prefix="/pdf")
 app.include_router(base)
