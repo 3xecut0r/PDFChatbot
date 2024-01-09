@@ -167,7 +167,7 @@ def get_data():
 
 
 @router.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(chat_id: int, file: UploadFile = File(...)):
     """
     Uploads a file and processes it based on its content type.
 
@@ -218,13 +218,10 @@ async def upload_file(file: UploadFile = File(...)):
 
         mongo_client = await get_mongodb()
         collection = mongo_client["files"]
-        result = await collection.insert_one({"text": text, "name": file.filename})
+        result = await collection.insert_one({"text": text, "name": file.filename, "chat_id": chat_id})
 
         return JSONResponse(
-            content={
-                "id": str(result.inserted_id),  # Return only the ID
-                "name": file.filename,
-            },
+            content=text,
             status_code=200,
         )
 
