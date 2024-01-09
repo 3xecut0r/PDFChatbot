@@ -1,17 +1,16 @@
 from fastapi import FastAPI
 import os
 
-from src.routers.routers import users, chats, payment
 from src.base_model.routers import base
 
 from src.routers.routers import router as pdf_router
-from src.routers.routers import users, chats, main
+from src.routers.routers import users, chats, main, payment
 from starlette.staticfiles import StaticFiles
 
 app = FastAPI()
 
 origins = [
-    "http://localhost:3000"
+    "http://localhost:8000"
     ]
 
 app.mount("/static", StaticFiles(directory="static"), name="static")

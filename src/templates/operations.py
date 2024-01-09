@@ -1,11 +1,11 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from openai import OpenAI
-from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 from starlette import status
 
 from src.conf.config import settings
+from src.base_model.basemodel import BASEMODEL
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
@@ -13,8 +13,6 @@ from fastapi.responses import JSONResponse
 from docx import Document
 import pdfplumber
 import csv
-
-from src.utils.get_mongo import get_mongodb
 
 
 USERNAME = settings.username_mongo
@@ -114,7 +112,7 @@ async def create_chat(user_id):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-async def create_message(chat_id, question):
+async def create_message(chat_id, question, model: str):
     """
     Send a message in a specific chat, generating an answer using GPT-3.5-turbo model.
     Args:
@@ -124,7 +122,10 @@ async def create_message(chat_id, question):
     """
     collection_msg = get_msg_data()
     try:
-        answer = generate_response_from_model(question)
+        if model == 'chatgpt':
+            answer = generate_response_from_model(question)
+        else:
+            answer = await BASEMODEL.answer(question)
         message = {'chat_id': chat_id, 'question': question, 'answer': answer}
         await collection_msg.insert_one(message)
         return answer

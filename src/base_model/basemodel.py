@@ -1,10 +1,20 @@
 import os
 from langchain_community.llms import HuggingFaceHub
 from langchain.memory import ConversationBufferMemory
+from langchain_community.document_loaders import UnstructuredFileLoader
+from tempfile import NamedTemporaryFile
+
 from src.conf.config import settings
+from src.utils.get_mongo import get_mongodb_chat_history
 
 API_KEY = settings.hf_api_key
 os.environ["HUGGINGFACEHUB_API_TOKEN"] = API_KEY
+
+async def save_message(question, answer, chat_id):
+    db = await get_mongodb_chat_history()
+    collection_msg = db['messages']
+    message = {'chat_id': chat_id, 'question': question, 'answer': answer}
+    await collection_msg.insert_one(message)
 
 
 class BaseModel:
@@ -22,6 +32,16 @@ class BaseModel:
 
     def drop_memory(self):
         self.memory.clear()
+
+    def upload_pdf(self, file_name, content):
+        with NamedTemporaryFile(delete=False, suffix=file_name) as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+        loader = UnstructuredFileLoader(temp_file_path, strategy="fast", mode="single")
+        docs = loader.load()
+        text = docs[0].page_content if docs else ""
+
+        return text
 
     async def answer(self, question):
         chat_memory = self.memory.buffer_as_str
@@ -41,7 +61,6 @@ class BaseModel:
             prompt = self.prompt.format(chat_history='Without chat history', user_input=question)
             answer = self.model(prompt)
             self.add_to_memory(question, answer)
-
         return answer
 
 
