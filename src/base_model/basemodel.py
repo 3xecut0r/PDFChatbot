@@ -26,6 +26,12 @@ class BaseModel:
                        "Use no more than two sentences. Try to give the most accurate answer."
                        "\n\nChat history: {chat_history}"
                        "\n\nHuman: {user_input}\nAI:")
+        self.document = None
+        self.prompt2 = ("Always check chat history before answer."
+                       "Use no more than two sentences. Try to give the most accurate answer."
+                       "\n\nThis is user document, read it: {document}"
+                       "\n\nChat history: {chat_history}"
+                       "\n\nHuman: {user_input}\nAI:")
 
     def add_to_memory(self, userinput, model_answer):
         self.memory.save_context({"input": userinput}, {"output": model_answer})
@@ -40,7 +46,7 @@ class BaseModel:
         loader = UnstructuredFileLoader(temp_file_path, strategy="fast", mode="single")
         docs = loader.load()
         text = docs[0].page_content if docs else ""
-
+        self.document = text
         return text
 
     async def answer(self, question):
@@ -51,7 +57,10 @@ class BaseModel:
             return ("Free AI memory was was full. AI continue without previous messages. "
                     "For more memory select Premium version")
         if chat_memory:
-            prompt = self.prompt.format(chat_history=chat_memory, user_input=question)
+            if self.document:
+                prompt = self.prompt2.format(chat_history=chat_memory, user_input=question, document=self.document)
+            else:
+                prompt = self.prompt.format(chat_history=chat_memory, user_input=question)
             answer = self.model(prompt)
             answer = answer.replace('\n\n', '')
             if '\nHuman Question' in answer:

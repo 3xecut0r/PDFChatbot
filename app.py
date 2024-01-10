@@ -15,7 +15,7 @@ origins = [
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-commandline_args = os.environ.get('COMMANDLINE_ARGS', "--skip-torch-cuda-test --no-half")
+# commandline_args = os.environ.get('COMMANDLINE_ARGS', "--skip-torch-cuda-test --no-half")
 
 app.include_router(main)
 app.include_router(users)
