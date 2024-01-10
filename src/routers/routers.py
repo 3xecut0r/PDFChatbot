@@ -12,8 +12,14 @@ from src.templates.operations import (
     get_db,
     get_payment,
     execute_paypal_payment,
-)
-from src.templates.operations import create_chat, create_message, get_chat_history
+    )
+from src.templates.operations import (
+    create_chat, 
+    create_message, 
+    get_chat_history, 
+    get_chat_data, 
+    get_msg_data 
+    )
 from src.templates.operations import (
     size_warning_response,
     extract_text_from_pdf,
@@ -186,6 +192,23 @@ async def delete_chat(chat_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+@chats.get("/user_chats")
+async def get_user_chats(current_user: dict = Depends(get_current_user)):
+    """
+    Get all chat IDs for the current user.
+    Args:
+        current_user: The current authenticated user.
+    Returns:
+        dict: A dictionary containing the list of chat IDs for the user.
+    """
+    try:
+        collection_chat = get_chat_data()  # Отримайте колекцію чатів з бази даних
+        user_chats = await collection_chat.find({"user_id": current_user['_id']}).to_list(length=None)
+        chat_ids = [str(chat['_id']) for chat in user_chats]
+        return {"chat_ids": chat_ids}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 @router.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
