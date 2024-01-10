@@ -1,10 +1,12 @@
+from bson import ObjectId
 from fastapi import APIRouter, Depends,  HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from jinja2 import Template
 
 from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
 from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment
-from src.templates.operations import create_chat, create_message, get_chat_history, get_chat_data
+from src.templates.operations import create_chat, create_message, get_chat_history, get_chat_data, get_msg_data
 from src.templates.operations import size_warning_response, extract_text_from_pdf, extract_data_from_csv, extract_text_from_docx
 
 from starlette.responses import FileResponse
@@ -14,17 +16,14 @@ from fastapi.responses import JSONResponse
 
 from io import BytesIO, StringIO
 from docx import Document
+from fastapi.responses import HTMLResponse
 
 from src.utils.get_mongo import get_mongodb
 
 main = APIRouter(prefix='/main', tags=['main'])
 users = APIRouter(prefix='/users', tags=['users'])
 chats = APIRouter(prefix='/chats', tags=['chats'])
-
-# router = APIRouter(prefix="/pdf", tags=["pdf"])
 router = APIRouter(prefix="/files", tags=["files"])
-
-
 payment = APIRouter(prefix='/payment', tags=['payment'])
 
 hash_handler = Hash()
@@ -159,6 +158,26 @@ async def get_user_chats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
+@chats.delete("/{chat_id}")
+async def delete_chat(chat_id: str):
+    """
+    Delete a specific chat and its messages by chat_id.
+    Args:
+        chat_id: The ID of the chat to be deleted.
+    Returns:
+        dict: A message indicating successful deletion.
+    """
+    collection_chat = get_chat_data()
+    collection_msg = get_msg_data()
+    try:
+        await collection_chat.delete_one({"_id": ObjectId(chat_id)})
+        await collection_msg.delete_many({"chat_id": chat_id})
+        return {"message": f"Chat with ID: {chat_id} and its messages deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
 @router.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
     try:
@@ -204,6 +223,7 @@ async def upload_file(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
+
 @users.post('/pay')
 async def pay(current_user: dict = Depends(get_current_user)):
     """
@@ -216,7 +236,7 @@ async def pay(current_user: dict = Depends(get_current_user)):
     return result
 
 
-@payment.get("/execute")
+@payment.get("/execute", include_in_schema=False)
 async def execute_payment(request: Request):
     """
     Get message from PayPal. Checking if user pay was accepted.
@@ -233,11 +253,14 @@ async def execute_payment(request: Request):
     if payment_id and payer_id:
         success = await execute_paypal_payment(payment_id, payer_id, current_user.get('username'))
         if success:
-            return {"status": "Payment successful, user upgraded to premium"}
+            status_text = "Payment successful, user upgraded to premium"
         else:
-            return {"status": "Payment failed. Try again."}
+            status_text = "Payment failed"
     else:
-        return {"status": "Missing paymentId or PayerID. Try again or send a feedback."}
+        status_text = "Missing paymentId or PayerID"
 
-    
+    with open("static/pay-result.html", "r") as file:
+        template = Template(file.read())
 
+    html_content = template.render(payment_status=status_text)
+    return HTMLResponse(content=html_content, status_code=200)

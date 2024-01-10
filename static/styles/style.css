@@ -2,7 +2,7 @@
 @import url(fonts.css);
 @import url(forms.css);
 @import url(buttons.css);
-@import url(custom-form.css);
+@import url(overlay.css);
 
 
 html, body {
@@ -51,9 +51,10 @@ html, body {
 .my-chats-list {
   width: 100%;
   height: 100%;
-  padding: 8px 8px;
+  padding: 16px;
   margin: 0px auto 16px auto;
   overflow-y: auto;
+  max-height: 600px;
 }
 
 
