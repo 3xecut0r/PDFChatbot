@@ -122,9 +122,9 @@ async def create_chat_route(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@chats.post("/{chat_id}/send_question")
+@chats.post("/{chat_id}/{model}/send_question")
 async def send_question_route(
-    chat_id: str, question: MessageModel, current_user: dict = Depends(get_current_user)
+    chat_id: str, question: MessageModel, model: str, current_user: dict = Depends(get_current_user)
 ):
     """
     Send a message in a specific chat with provided question and answer.
@@ -136,7 +136,7 @@ async def send_question_route(
         dict: A message indicating successful message sending.
     """
     try:
-        answer = await create_message(chat_id, question.question)
+        answer = await create_message(chat_id, question.question, model)
         return {"answer": answer}
     except Exception as e:
         print(e)
@@ -296,7 +296,7 @@ async def pay(current_user: dict = Depends(get_current_user)):
         may interact with external payment services. The current user's details are used to personalize
         or authorize the payment process.
     """
-    result = await get_payment()
+    result = await get_payment(current_user)
     return result
 
 

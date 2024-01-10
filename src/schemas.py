@@ -18,3 +18,4 @@ class ChatModel(BaseModel):
       
 class MessageModel(BaseModel):
     question: str
+    model: str
