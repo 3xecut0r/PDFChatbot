@@ -112,7 +112,7 @@ async def create_chat(user_id):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-async def create_message(chat_id, question, model: str):
+async def create_message(chat_id, question, model: str, content: str = None):
     """
     Send a message in a specific chat, generating an answer using GPT-3.5-turbo model.
     Args:
@@ -125,7 +125,10 @@ async def create_message(chat_id, question, model: str):
         if model == 'chatgpt':
             answer = generate_response_from_model(question)
         else:
-            answer = await BASEMODEL.answer(question)
+            if content:
+                answer = await BASEMODEL.answer(f"Question:{question} \n\n {content}")
+            else:
+                answer = await BASEMODEL.answer(question)
         message = {'chat_id': chat_id, 'question': question, 'answer': answer}
         await collection_msg.insert_one(message)
         return answer
