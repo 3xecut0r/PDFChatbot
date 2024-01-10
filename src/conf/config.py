@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(..., env="OPENAI_API_KEY")
     paypal_client: str = Field(..., env="PAYPAL_CLIENT")
     paypal_secret: str = Field(..., env="PAYPAL_SECRET")
+    hf_api_key: str = Field(..., env="HF_API_KEY")
     class Config:
         env_file = '.env.sample'
         env_file_encoding = 'utf-8' 

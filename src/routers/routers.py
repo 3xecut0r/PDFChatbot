@@ -7,35 +7,20 @@ from fastapi.responses import RedirectResponse as redirect
 
 from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
-from src.templates.operations import (
-    create_user,
-    get_db,
-    get_payment,
-    execute_paypal_payment,
-    )
-from src.templates.operations import (
-    create_chat, 
-    create_message, 
-    get_chat_history, 
-    get_chat_data, 
-    get_msg_data 
-    )
-from src.templates.operations import (
-    size_warning_response,
-    extract_text_from_pdf,
-    extract_data_from_csv,
-    extract_text_from_docx,
-)
 
+from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment
+from src.templates.operations import create_chat, create_message, get_chat_history, get_chat_data, get_msg_data
+from src.templates.operations import size_warning_response, extract_text_from_pdf, extract_data_from_csv
+from src.templates.operations import extract_text_from_docx
 
 from starlette.responses import FileResponse
-
-from fastapi import File, UploadFile, HTTPException, APIRouter
+from fastapi import File, UploadFile
 from fastapi.responses import JSONResponse
 
 from io import BytesIO, StringIO
 from docx import Document
 from fastapi.responses import HTMLResponse
+
 
 from src.utils.get_mongo import get_mongodb
 
@@ -210,8 +195,9 @@ async def get_user_chats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
+@router.post("/{chat_id}/upload/")
+async def upload_file(chat_id, file: UploadFile = File(...)):
+
     """
     Uploads a file and processes it based on its content type.
 
@@ -262,13 +248,10 @@ async def upload_file(file: UploadFile = File(...)):
 
         mongo_client = await get_mongodb()
         collection = mongo_client["files"]
-        result = await collection.insert_one({"text": text, "name": file.filename})
+        result = await collection.insert_one({"text": text, "name": file.filename, "chat_id": chat_id})
 
         return JSONResponse(
-            content={
-                "id": str(result.inserted_id),  # Return only the ID
-                "name": file.filename,
-            },
+            content=text,
             status_code=200,
         )
 
