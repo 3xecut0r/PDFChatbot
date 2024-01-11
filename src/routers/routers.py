@@ -215,7 +215,7 @@ async def get_user_chats(current_user: dict = Depends(get_current_user)):
 
 @router.post("/{chat_id}/upload/")
 async def upload_file(chat_id, file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-"""
+    """
     Uploads a file and processes it based on its content type.
 
     This endpoint accepts a file upload and processes the file based on its MIME type. It supports processing for PDF, CSV, DOCX, and plain text files. The processed text is then stored in a MongoDB collection, and the function returns the ID of the created database entry along with the file name.
@@ -301,14 +301,11 @@ async def pay(current_user: dict = Depends(get_current_user)):
 
 
 @payment.get("/execute")
-async def execute_payment(
-    request: Request, current_user: dict = Depends(get_current_user)
-):
+async def execute_payment(request: Request):
     """
     Executes a payment transaction based on the provided payment ID and payer ID.
     Args:
         request (Request): The request object, used to extract query parameters.
-        current_user (dict): The current authenticated user, used to validate and associate the payment.
 
     Returns:
         dict: A status message indicating the result of the payment execution. This includes successful
@@ -326,14 +323,16 @@ async def execute_payment(
     payment_id = request.query_params.get("paymentId")
     payer_id = request.query_params.get("PayerID")
 
+    token = request.query_params.get('token')
+    session = get_db()
+    current_user = await session.find_one({'token': token})
+
     if payment_id and payer_id:
-        success = await execute_paypal_payment(
-            payment_id, payer_id, current_user.get("username")
-        )
+        success = await execute_paypal_payment(payment_id, payer_id, current_user.get('username'))
 
         if success:
             return {"status": "Payment successful, user upgraded to premium"}
         else:
-            return {"status": "Payment failed"}
+            return {"status": "Payment failed. Try again."}
     else:
-        return {"status": "Missing paymentId or PayerID"}
+        return {"status": "Missing paymentId or PayerID. Try again or send a feedback."}
