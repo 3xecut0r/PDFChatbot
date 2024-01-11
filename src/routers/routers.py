@@ -213,9 +213,9 @@ async def get_user_chats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@files.post("/{chat_id}/upload")
-async def upload_file(chat_id, file: UploadFile = File(...)):
-    """
+@router.post("/{chat_id}/upload/")
+async def upload_file(chat_id, file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+"""
     Uploads a file and processes it based on its content type.
 
     This endpoint accepts a file upload and processes the file based on its MIME type. It supports processing for PDF, CSV, DOCX, and plain text files. The processed text is then stored in a MongoDB collection, and the function returns the ID of the created database entry along with the file name.
