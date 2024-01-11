@@ -213,8 +213,8 @@ async def get_user_chats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.post("/{chat_id}/upload/")
-async def upload_file(chat_id, file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+@files.post("/{chat_id}/upload/")
+async def upload_file(chat_id, file: UploadFile = File(...)):
     """
     Uploads a file and processes it based on its content type.
 
@@ -296,7 +296,7 @@ async def pay(current_user: dict = Depends(get_current_user)):
         may interact with external payment services. The current user's details are used to personalize
         or authorize the payment process.
     """
-    result = await get_payment(current_user)
+    result = await get_payment(current_user.get('username'))
     return result
 
 
