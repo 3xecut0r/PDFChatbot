@@ -142,7 +142,6 @@ async def send_question_route(
         except Exception as e:
             print(e)
             raise HTTPException(status_code=500, detail="Internal Server Error")
-    print(last_element_content)
     
 
 
@@ -331,7 +330,7 @@ async def execute_payment(request: Request):
         success = await execute_paypal_payment(payment_id, payer_id, current_user.get('username'))
 
         if success:
-            return {"status": "Payment successful, user upgraded to premium"}
+            return FileResponse("static/pay-result.html")
         else:
             return {"status": "Payment failed. Try again."}
     else:
