@@ -20,6 +20,8 @@ PASSWORD = settings.password_mongo
 CLIENT = settings.paypal_client
 SECRET = settings.paypal_secret
 
+model_basic = 'basemodel'
+model_premium = 'gpt-3.5-turbo'
 
 
 def get_db():
@@ -54,6 +56,15 @@ def get_msg_data():
     collection_msg = db['messages']
     return collection_msg
 
+def get_file_data():
+    """
+    Async connect to database.
+    Returns database collection 'messages'.
+    """
+    client = AsyncIOMotorClient(f'mongodb+srv://{USERNAME}:{PASSWORD}@pdfchatbot.zkaopxh.mongodb.net/?retryWrites=true&w=majority')
+    db = client['storage']
+    collection_files = db['files']
+    return collection_files
 
 async def create_user(name, password):
     """Function those create new user object in database 'Users'.
@@ -112,7 +123,8 @@ async def create_chat(user_id):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-async def create_message(chat_id, question, model: str, content: str = None):
+async def create_message(chat_id, question, model='model_basic', content: str = None):
+
     """
     Send a message in a specific chat, generating an answer using GPT-3.5-turbo model.
     Args:
@@ -122,14 +134,21 @@ async def create_message(chat_id, question, model: str, content: str = None):
     """
     collection_msg = get_msg_data()
     try:
-        if model == 'chatgpt':
-            answer = generate_response_from_model(question)
-        else:
+        if model == 'model_premium':
+            if content:
+                question_with_file = f"Question:{question} File to analize:{content[:3500]}"
+                answer = generate_response_from_model(question_with_file)
+            else:
+                answer = generate_response_from_model(question)
+        elif model == 'model_basic':
             if content:
                 answer = await BASEMODEL.answer(f"Question:{question} \n\n {content}")
             else:
                 answer = await BASEMODEL.answer(question)
-        message = {'chat_id': chat_id, 'question': question, 'answer': answer}
+        else:
+            answer = 'Select model!'
+
+        message = {'chat_id': chat_id, 'question': question, 'answer': answer, 'model': model}
         await collection_msg.insert_one(message)
         return answer
     except Exception as e:
@@ -158,8 +177,6 @@ async def get_chat_history(chat_id):
         return formatted_history
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-
 
 def size_warning_response():
     return JSONResponse(

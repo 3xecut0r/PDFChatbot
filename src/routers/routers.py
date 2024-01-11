@@ -1,32 +1,35 @@
+from bson import ObjectId
+from jinja2 import Template
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse as redirect
 
 from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
-from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment
-from src.templates.operations import create_chat, create_message, get_chat_history, get_chat_data
+
+from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment, get_file_data
+from src.templates.operations import create_chat, create_message, get_chat_history, get_chat_data, get_msg_data
 from src.templates.operations import size_warning_response, extract_text_from_pdf, extract_data_from_csv
 from src.templates.operations import extract_text_from_docx
 
 from starlette.responses import FileResponse
-
 from fastapi import File, UploadFile
 from fastapi.responses import JSONResponse
 
 from io import BytesIO, StringIO
+from docx import Document
+from fastapi.responses import HTMLResponse
+
 
 from src.utils.get_mongo import get_mongodb
 
-main = APIRouter(prefix="/main", tags=["main"])
-users = APIRouter(prefix="/users", tags=["users"])
-chats = APIRouter(prefix="/chats", tags=["chats"])
+main = APIRouter(prefix='/main', tags=['main'])
+users = APIRouter(prefix='/users', tags=['users'])
+chats = APIRouter(prefix='/chats', tags=['chats'])
+files = APIRouter(prefix="/files", tags=["files"])
+payment = APIRouter(prefix='/payment', tags=['payment'])
 
-# router = APIRouter(prefix="/pdf", tags=["pdf"])
-router = APIRouter(prefix="/files", tags=["files"])
-
-
-payment = APIRouter(prefix="/payment", tags=["payment"])
 
 hash_handler = Hash()
 
@@ -71,7 +74,12 @@ async def login(body: OAuth2PasswordRequestForm = Depends()):
             )
 
         access_token = await create_access_token(data={"sub": user["username"]})
-        return {"access_token": access_token, "token_type": "bearer"}
+        premium_status = user.get("premium", False)
+        return {
+            "access_token": access_token, 
+            "token_type": "bearer",
+            "premium": premium_status
+            }
     except Exception as e:
         print(e)
         raise HTTPException(status_code=400, detail="False")
@@ -104,9 +112,9 @@ async def create_chat_route(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@chats.post("/{chat_id}/send_question")
+@chats.post("/{chat_id}/{model}/send_question")
 async def send_question_route(
-    chat_id: str, question: MessageModel, current_user: dict = Depends(get_current_user)
+    chat_id: str, question: MessageModel, model: str, current_user: dict = Depends(get_current_user)
 ):
     """
     Send a message in a specific chat with provided question and answer.
@@ -117,12 +125,25 @@ async def send_question_route(
     Returns:
         dict: A message indicating successful message sending.
     """
-    try:
-        answer = await create_message(chat_id, question.question)
-        return {"answer": answer}
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+    collection_files = get_file_data()
+    files_list = await collection_files.find({"chat_id": chat_id}).to_list(length=None)
+    if files_list:
+        content = files_list[-1].get("text")
+        try:
+            answer = await create_message(chat_id, question.question, model, content)
+            return {"answer": answer}
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+    else:
+        try:
+            answer = await create_message(chat_id, question.question, model)
+            return {"answer": answer}
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+    print(last_element_content)
+    
 
 
 @chats.get("/{chat_id}/history")
@@ -156,9 +177,45 @@ def get_data():
     return FileResponse("static/chat.html")
 
 
+@chats.delete("/{chat_id}")
+async def delete_chat(chat_id: str):
+    """
+    Delete a specific chat and its messages by chat_id.
+    Args:
+        chat_id: The ID of the chat to be deleted.
+    Returns:
+        dict: A message indicating successful deletion.
+    """
+    collection_chat = get_chat_data()
+    collection_msg = get_msg_data()
+    try:
+        await collection_chat.delete_one({"_id": ObjectId(chat_id)})
+        await collection_msg.delete_many({"chat_id": chat_id})
+        return {"message": f"Chat with ID: {chat_id} and its messages deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
+@chats.get("/user_chats")
+async def get_user_chats(current_user: dict = Depends(get_current_user)):
+    """
+    Get all chat IDs for the current user.
+    Args:
+        current_user: The current authenticated user.
+    Returns:
+        dict: A dictionary containing the list of chat IDs for the user.
+    """
+    try:
+        collection_chat = get_chat_data()  # Отримайте колекцію чатів з бази даних
+        user_chats = await collection_chat.find({"user_id": current_user['_id']}).to_list(length=None)
+        chat_ids = [str(chat['_id']) for chat in user_chats]
+        return {"chat_ids": chat_ids}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 @router.post("/{chat_id}/upload/")
 async def upload_file(chat_id, file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
-    """
+"""
     Uploads a file and processes it based on its content type.
 
     This endpoint accepts a file upload and processes the file based on its MIME type. It supports processing for PDF, CSV, DOCX, and plain text files. The processed text is then stored in a MongoDB collection, and the function returns the ID of the created database entry along with the file name.
@@ -239,7 +296,7 @@ async def pay(current_user: dict = Depends(get_current_user)):
         may interact with external payment services. The current user's details are used to personalize
         or authorize the payment process.
     """
-    result = await get_payment()
+    result = await get_payment(current_user)
     return result
 
 

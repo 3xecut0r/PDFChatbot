@@ -2,16 +2,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const signUpButton = document.querySelector('.sign-up');
     const signInButton = document.querySelector('.log-in');
 
-    
-    
-
     signUpButton.addEventListener('click', async () => {
         const email = document.getElementById('exampleInputEmail1').value;
         const password = document.getElementById('exampleInputPassword1').value;
-        //validateFields(email, password, signUpButton);
+        
+        if (!email || !password) {
+            if (!email) {
+                setInvalidFieldStyle('exampleInputEmail1');
+            }
+            if (!password) {
+                setInvalidFieldStyle('exampleInputPassword1');
+            }
+            return;
+        }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/users/signup', {
+            const response = await fetch('/users/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -36,10 +42,19 @@ document.addEventListener('DOMContentLoaded', () => {
     signInButton.addEventListener('click', async () => {
         const email = document.getElementById('exampleInputEmail2').value;
         const password = document.getElementById('exampleInputPassword2').value;
-        //validateFields(email, password, signInButton);
+        
+        if (!email || !password) {
+            if (!email) {
+                setInvalidFieldStyle('exampleInputEmail2');
+            }
+            if (!password) {
+                setInvalidFieldStyle('exampleInputPassword2');
+            }
+            return;
+        }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/users/signin', {
+            const response = await fetch('/users/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -49,13 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('User logged in:', data);
                 const receivedToken = data.access_token;
+                const premiumStatus = data.premium || false;
+
                 localStorage.setItem('accessToken', receivedToken);
+                localStorage.setItem('premium', premiumStatus);
+                
                 window.location.href = '/chats/';
             } else {
-                console.error('Failed to log in:', response.statusText);
-                alert('Login failed. Please try again.');
+                alert('Login failed. Check your data and try again.');
             }
         } catch (error) {
             console.error('Error during login:', error);
@@ -63,4 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    function setInvalidFieldStyle(fieldId) {
+        const field = document.getElementById(fieldId);
+        field.style.borderColor = 'red';
+        field.addEventListener('input', () => {
+            if (field.value) {
+                field.style.borderColor = ''; 
+            }
+        });
+    }
 });
