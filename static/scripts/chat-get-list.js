@@ -6,9 +6,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = '/main/';
     }
 
-    const BASE_URL = 'http://127.0.0.1:8000';
+    
     try {
-        const response = await fetch(`${BASE_URL}/chats/user_chats`, {
+        const response = await fetch('/chats/user_chats', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${accessToken}`,
@@ -21,17 +21,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const chatIds = data.chat_ids;
             const chatIdDisplay = document.getElementById('chatIdDisplay');
             const checkchatIdDisplay = document.getElementById('checkchatIdDisplay');
-
-            if (!chatIds) {
-                checkchatIdDisplay.innerHTML = 'No chats yet...';
-            }
-            else {
+            checkchatIdDisplay.innerHTML = 'No chats yet...';
+            if (chatIds.length > 0) {
                 checkchatIdDisplay.innerHTML = '';
             }
 
             chatIds.forEach(chatId => {
                 chatIdDisplay.innerHTML += `<div class="chat-link" id="chat-${chatId}"><b>Chat</b> #${chatId}  ${icon}</div>`;
             });
+            Array.from(chatIdDisplay.getElementsByClassName('chat-link')).pop().classList.add('active');
         } else {
             console.error('Failed to get user chats');
         }

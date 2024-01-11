@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse as redirect
 from src.schemas import UserModel, MessageModel
 from src.templates.auth import Hash, create_access_token, get_current_user
 
-from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment
+from src.templates.operations import create_user, get_db, get_payment, execute_paypal_payment, get_file_data
 from src.templates.operations import create_chat, create_message, get_chat_history, get_chat_data, get_msg_data
 from src.templates.operations import size_warning_response, extract_text_from_pdf, extract_data_from_csv
 from src.templates.operations import extract_text_from_docx
@@ -27,7 +27,7 @@ from src.utils.get_mongo import get_mongodb
 main = APIRouter(prefix='/main', tags=['main'])
 users = APIRouter(prefix='/users', tags=['users'])
 chats = APIRouter(prefix='/chats', tags=['chats'])
-router = APIRouter(prefix="/files", tags=["files"])
+files = APIRouter(prefix="/files", tags=["files"])
 payment = APIRouter(prefix='/payment', tags=['payment'])
 
 
@@ -74,7 +74,12 @@ async def login(body: OAuth2PasswordRequestForm = Depends()):
             )
 
         access_token = await create_access_token(data={"sub": user["username"]})
-        return {"access_token": access_token, "token_type": "bearer"}
+        premium_status = user.get("premium", False)
+        return {
+            "access_token": access_token, 
+            "token_type": "bearer",
+            "premium": premium_status
+            }
     except Exception as e:
         print(e)
         raise HTTPException(status_code=400, detail="False")
@@ -120,12 +125,25 @@ async def send_question_route(
     Returns:
         dict: A message indicating successful message sending.
     """
-    try:
-        answer = await create_message(chat_id, question.question, model)
-        return {"answer": answer}
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+    collection_files = get_file_data()
+    files_list = await collection_files.find({"chat_id": chat_id}).to_list(length=None)
+    if files_list:
+        content = files_list[-1].get("text")
+        try:
+            answer = await create_message(chat_id, question.question, model, content)
+            return {"answer": answer}
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+    else:
+        try:
+            answer = await create_message(chat_id, question.question, model)
+            return {"answer": answer}
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=500, detail="Internal Server Error")
+    print(last_element_content)
+    
 
 
 @chats.get("/{chat_id}/history")
@@ -195,9 +213,8 @@ async def get_user_chats(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
-@router.post("/{chat_id}/upload/")
+@files.post("/{chat_id}/upload")
 async def upload_file(chat_id, file: UploadFile = File(...)):
-
     """
     Uploads a file and processes it based on its content type.
 
@@ -283,7 +300,7 @@ async def pay(current_user: dict = Depends(get_current_user)):
     return result
 
 
-@payment.get("/execute", include_in_schema=False)
+@payment.get("/execute")
 async def execute_payment(
     request: Request, current_user: dict = Depends(get_current_user)
 ):
@@ -315,14 +332,8 @@ async def execute_payment(
         )
 
         if success:
-            status_text = "Payment successful, user upgraded to premium"
+            return {"status": "Payment successful, user upgraded to premium"}
         else:
-            status_text = "Payment failed"
+            return {"status": "Payment failed"}
     else:
-        status_text = "Missing paymentId or PayerID"
-
-    with open("static/pay-result.html", "r") as file:
-        template = Template(file.read())
-
-    html_content = template.render(payment_status=status_text)
-    return HTMLResponse(content=html_content, status_code=200)
+        return {"status": "Missing paymentId or PayerID"}

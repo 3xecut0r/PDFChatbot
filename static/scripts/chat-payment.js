@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = 'http://127.0.0.1:8000';
-    document.getElementById("payment-btn").addEventListener("click", async function() {
+    const premium = localStorage.getItem('premium');
+    const paymentBtn = document.getElementById('payment-btn');
+
+    paymentBtn.addEventListener("click", async function() {
         try {
             const response = await fetch('/users/pay', {
                 method: 'POST',

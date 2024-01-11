@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/users/signup', {
+            const response = await fetch('/users/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/users/signin', {
+            const response = await fetch('/users/signin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -64,9 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('User logged in:', data);
                 const receivedToken = data.access_token;
+                const premiumStatus = data.premium || false;
+
                 localStorage.setItem('accessToken', receivedToken);
+                localStorage.setItem('premium', premiumStatus);
+                
                 window.location.href = '/chats/';
             } else {
                 alert('Login failed. Check your data and try again.');

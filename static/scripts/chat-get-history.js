@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = 'http://127.0.0.1:8000';
     const chatIdDisplay = document.getElementById('chatIdDisplay');
     const messageDisplay = document.getElementById('messageDisplay');
 
@@ -14,13 +13,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const allChats = document.querySelectorAll('.chat-link');
             
             allChats.forEach(chat => {
-                chat.style.backgroundColor = ''; 
                 chat.classList.remove('active')
             });
-            clickedChat.style.backgroundColor = 'rgba(0,0,0,0.1)';
             clickedChat.classList.add('active')
             try {
-                const response = await fetch(`${BASE_URL}/chats/${currentChatId}/history`, {
+                const response = await fetch(`/chats/${currentChatId}/history`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,

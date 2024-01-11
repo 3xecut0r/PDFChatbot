@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadButton = document.getElementById('upload-btn');
     const fileInput = document.getElementById('fileInput');
     const svgIcon = document.querySelector('#upload-btn svg');
+    let currentChatId = '659f4157d05bdd352787a28c';
+
 
     if (uploadButton && fileInput) {
         uploadButton.addEventListener('click', function () {
@@ -18,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch('/pdf/files/upload/', {
+                const response = await fetch(`/files/${currentChatId}/upload`, {
                     method: 'POST',
                     body: formData
                 });

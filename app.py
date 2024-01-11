@@ -3,7 +3,7 @@ import os
 
 from src.base_model.routers import base
 
-from src.routers.routers import router as pdf_router
+from src.routers.routers import files
 from src.routers.routers import users, chats, main, payment
 from starlette.staticfiles import StaticFiles
 
@@ -21,5 +21,5 @@ app.include_router(main)
 app.include_router(users)
 app.include_router(chats)
 app.include_router(payment)
-app.include_router(pdf_router, prefix="/pdf")
+app.include_router(files)
 app.include_router(base)
