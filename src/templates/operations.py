@@ -230,8 +230,8 @@ async def get_payment(user):
             }
         }],
         'redirect_urls': {
-            'return_url': 'http://localhost:8000/payment/execute',
-            'cancel_url': 'http://localhost:8000/payment/cancel'
+            'return_url': 'http://16.171.144.42:8000/payment/execute',
+            'cancel_url': 'http://16.171.144.42:8000/payment/cancel'
         }
     }
 
