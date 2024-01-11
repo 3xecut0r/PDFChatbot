@@ -8,7 +8,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 ```bash
-uvicorn main:app --reload
+uvicorn app:app --reload
 ```
 ```bash
 pip freeze > requirements.txt 
