@@ -1,6 +1,8 @@
 venv/
 __pycache__/
+.idea/
 .env.sample
+.python-version
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
